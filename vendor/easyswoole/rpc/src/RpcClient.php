@@ -13,6 +13,10 @@ class RpcClient
     protected $nodeManager;
     protected $callList = [];
 
+    /**
+     * 构造函数
+     * @param NodeManagerInterface $manager 节点管理器
+     */
     public function __construct(NodeManagerInterface $manager)
     {
         $this->nodeManager = $manager;
@@ -43,6 +47,7 @@ class RpcClient
      */
     public function addCall(string $service, string $action, $arg = null, $serviceVersion = null): ServiceCall
     {
+        //请求实例
         $item = new ServiceCall([
             'serviceName' => $service,
             'action' => $action,
@@ -70,7 +75,7 @@ class RpcClient
                 //已存在服务节点
                 $serviceNode = $item->getServiceNode();
             } else {
-                //从节点管理器获取节点
+                //从节点管理器获取服务节点
                 $serviceNode = $this->nodeManager->getServiceNode($item->getServiceName(), $item->getServiceVersion());
             }
             if (!$serviceNode) {
@@ -110,6 +115,7 @@ class RpcClient
         while ($left > 0 && $leftHandler > 0) {
             $start = round(microtime(true), 3);
             $ret = $channel->pop($left);
+            //更新剩余可用时间
             $left = $left - (round(microtime(true), 3) - $start);
             $leftHandler--;
             if (is_array($ret)) {

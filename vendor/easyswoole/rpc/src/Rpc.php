@@ -80,8 +80,10 @@ class Rpc
             $config->setListenAddress($this->getConfig()->getListenAddress());
             $config->setListenPort($this->getConfig()->getListenPort());
             $config->setArg(['config' => $this->getConfig(), 'serviceList' => $this->list]);
+            //创建服务进程
             $ret['worker'][] = new WorkerProcess($config);
         }
+        //创建定时器进程
         $ret['tickWorker'][] = new TickProcess("Rpc.TickWorker", ['config' => $this->getConfig(), 'serviceList' => $this->list], false, 2, true);
         return $ret;
     }

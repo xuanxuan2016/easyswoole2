@@ -7,8 +7,17 @@ use EasySwoole\Component\Process\Socket\AbstractTcpProcess;
 use EasySwoole\Component\TableManager;
 use Swoole\Coroutine\Socket;
 
+/**
+ * 服务进程
+ * 用于接收客户端的服务调用
+ */
 class WorkerProcess extends AbstractTcpProcess
 {
+    /**
+     * 处理客户端的请求
+     * @param Socket $socket
+     * @return type
+     */
     function onAccept(Socket $socket)
     {
         /** @var Config $config */
@@ -80,6 +89,11 @@ class WorkerProcess extends AbstractTcpProcess
         }
     }
 
+    /**
+     * 回复客户端
+     * @param Socket $clientSocket
+     * @param \EasySwoole\Rpc\Response $response
+     */
     private function reply(Socket $clientSocket, Response $response)
     {
         $str = $response->__toString();
@@ -87,7 +101,13 @@ class WorkerProcess extends AbstractTcpProcess
         $clientSocket->sendAll($str);
         $clientSocket->close();
     }
-
+    
+    /**
+     * 处理异常
+     * @param \Throwable $throwable
+     * @param type $args
+     * @throws \Throwable
+     */
     protected function onException(\Throwable $throwable, ...$args)
     {
         /** @var Config $config */

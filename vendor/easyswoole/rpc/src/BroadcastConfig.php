@@ -6,6 +6,9 @@ namespace EasySwoole\Rpc;
 
 use EasySwoole\Spl\SplBean;
 
+/**
+ * 广播配置文件
+ */
 class BroadcastConfig extends SplBean
 {
     protected $listenAddress = '0.0.0.0';

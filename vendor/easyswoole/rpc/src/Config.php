@@ -8,6 +8,9 @@ use EasySwoole\Rpc\NodeManager\NodeManagerInterface;
 use EasySwoole\Spl\SplBean;
 use EasySwoole\Utility\Random;
 
+/**
+ * rpc配置文件
+ */
 class Config extends SplBean
 {
     protected $serverIp;

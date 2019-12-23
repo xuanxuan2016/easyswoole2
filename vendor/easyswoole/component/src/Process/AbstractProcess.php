@@ -13,6 +13,9 @@ use Swoole\Event;
 use Swoole\Process;
 use Swoole\Coroutine\Scheduler;
 
+/**
+ * 自定义swoole进程抽象类
+ */
 abstract class AbstractProcess
 {
     private $swooleProcess;
@@ -47,6 +50,7 @@ abstract class AbstractProcess
             $enableCoroutine = (bool)array_shift($args) ?: false;
             $this->config->setEnableCoroutine($enableCoroutine);
         }
+        //创建swoole进程
         $this->swooleProcess = new Process([$this,'__start'],$this->config->isRedirectStdinStdout(),$this->config->getPipeType(),$this->config->isEnableCoroutine());
     }
 
@@ -83,7 +87,10 @@ abstract class AbstractProcess
             return null;
         }
     }
-
+    
+    /**
+     * swoole服务开启后执行
+     */
     function __start(Process $process)
     {
         /*
@@ -96,14 +103,24 @@ abstract class AbstractProcess
         if(PHP_OS != 'Darwin' && !empty($this->getProcessName())){
             $process->name($this->getProcessName());
         }
+        
+        /**
+         * 添加socket管道事件
+         */
         swoole_event_add($this->swooleProcess->pipe, function(){
             try{
+                //从管道中读取数据
                 $this->onPipeReadable($this->swooleProcess);
             }catch (\Throwable $throwable){
                 $this->onException($throwable);
             }
         });
+        
+        /**
+         * 添加异步信号(kill)监听
+         */
         Process::signal(SIGTERM,function ()use($process){
+            //删除socket管道事件
             swoole_event_del($process->pipe);
             /*
              * 清除全部定时器
@@ -112,6 +129,10 @@ abstract class AbstractProcess
             Process::signal(SIGTERM, null);
             Event::exit();
         });
+        
+        /**
+         * 注册php中止时执行的函数
+         */
         register_shutdown_function(function () {
             $schedule = new Scheduler();
             $schedule->add(function (){
@@ -126,6 +147,7 @@ abstract class AbstractProcess
         });
 
         try{
+            //运行进程启动的回调
             $this->run($this->config->getArg());
         }catch (\Throwable $throwable){
             $this->onException($throwable);

@@ -35,12 +35,15 @@ class TickProcess extends AbstractProcess
                 }
             }
         });
-
-        if ($config->getBroadcastConfig()->isEnableBroadcast()) {//对外广播
+        
+        //定时对外广播本地服务节点
+        if ($config->getBroadcastConfig()->isEnableBroadcast()) {
             $this->addTick($config->getBroadcastConfig()->getInterval() * 1000, function () use ($config, $serviceList) {
                 $this->udpBroadcast($config, $serviceList, BroadcastCommand::COMMAND_HEART_BEAT);
             });
         }
+        
+        //监听广播更新其他服务节点
         if ($config->getBroadcastConfig()->isEnableListen()) {
             Coroutine::create(function () use ($config) {
                 $openssl = null;
@@ -78,7 +81,10 @@ class TickProcess extends AbstractProcess
         }
     }
 
-    //进程关闭时回调
+    /**
+     * 进程关闭时回调
+     * 删除本节点的服务
+     */
     protected function onShutDown()
     {
         /** @var Config $config */
@@ -100,7 +106,13 @@ class TickProcess extends AbstractProcess
         $this->udpBroadcast($config, $serviceList, BroadcastCommand::COMMAND_OFF_LINE);
     }
 
-    //udp广播
+    /**
+     * udp广播
+     * 向指定地址广播本节点的服务
+     * @param \EasySwoole\Rpc\Config $config
+     * @param array $serviceList
+     * @param int $command
+     */
     protected function udpBroadcast(Config $config, array $serviceList, int $command)
     {
         $openssl = null;
@@ -123,6 +135,7 @@ class TickProcess extends AbstractProcess
          * @var  $serviceName
          * @var AbstractService $service
          */
+        //遍历服务广播
         foreach ($serviceList as $serviceName => $service) {
             $node->setServiceName($serviceName);
             $node->setServiceVersion($service->version());
@@ -139,7 +152,13 @@ class TickProcess extends AbstractProcess
         $client->close();
         unset($client);
     }
-
+    
+    /**
+     * 异常处理
+     * @param \Throwable $throwable
+     * @param type $args
+     * @throws \Throwable
+     */
     protected function onException(\Throwable $throwable, ...$args)
     {
         /** @var Config $config */
