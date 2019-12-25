@@ -23,7 +23,10 @@ class Restart implements CommandInterface
         // TODO: Implement commandName() method.
         return 'restart';
     }
-
+    
+    /**
+     * 执行命令
+     */
     public function exec(array $args): ?string
     {
         // TODO: Implement exec() method.
@@ -37,7 +40,10 @@ class Restart implements CommandInterface
         $this->start();
         return null;
     }
-
+    
+    /**
+     * 启动
+     */
     protected function start()
     {
         // TODO: Implement exec() method.
@@ -50,7 +56,10 @@ class Restart implements CommandInterface
         Core::getInstance()->start();
         return null;
     }
-
+    
+    /**
+     * 停止
+     */
     protected function stop()
     {
         $Conf = Config::getInstance();

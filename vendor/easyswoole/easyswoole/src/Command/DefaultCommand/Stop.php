@@ -22,10 +22,14 @@ class Stop implements CommandInterface
         // TODO: Implement commandName() method.
         return 'stop';
     }
-
+    
+    /**
+     * 执行命令
+     */
     public function exec(array $args): ?string
     {
         // TODO: Implement exec() method.
+        //是否强制关闭
         $force = false;
         if(in_array('force',$args)){
             $force = true;
@@ -34,18 +38,22 @@ class Stop implements CommandInterface
             Core::getInstance()->setIsDev(false);
         }
         $Conf = Config::getInstance();
+        //获取进程id文件
         $pidFile = $Conf->getConf("MAIN_SERVER.SETTING.pid_file");
         if (file_exists($pidFile)) {
             $pid = intval(file_get_contents($pidFile));
+            //检测进程是否存在
             if (!\swoole_process::kill($pid, 0)) {
                 return "PID :{$pid} not exist ";
             }
+            //关闭进程
             if ($force) {
                 \swoole_process::kill($pid, SIGKILL);
             } else {
                 \swoole_process::kill($pid);
             }
             //等待5秒
+            //等待15秒进程是否关闭
             $time = time();
             while (true) {
                 usleep(1000);

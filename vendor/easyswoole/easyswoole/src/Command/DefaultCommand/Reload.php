@@ -22,7 +22,10 @@ class Reload implements CommandInterface
         // TODO: Implement commandName() method.
         return 'reload';
     }
-
+    
+    /**
+     * 执行命令
+     */
     public function exec(array $args): ?string
     {
         // TODO: Implement exec() method.
@@ -31,16 +34,20 @@ class Reload implements CommandInterface
         }
         $conf = Config::getInstance();
         $res = '';
+        //获取进程id文件
         $pidFile = $conf->getConf("MAIN_SERVER.SETTING.pid_file");
         var_dump($pidFile);
         if (file_exists($pidFile)) {
             $sig = SIGUSR1;
             $res = $res . Utility::displayItem('reloadType', "all-worker") . "\n";
+            //清除opcache缓存
             Utility::opCacheClear();
             $pid = file_get_contents($pidFile);
+            //检测进程是否存在
             if (!\swoole_process::kill($pid, 0)) {
                 return "pid :{$pid} not exist ";
             }
+            //重启所有worker进程
             \swoole_process::kill($pid, $sig);
             return $res . "send server reload command at " . date("Y-m-d H:i:s");
         } else {
